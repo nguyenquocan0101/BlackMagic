@@ -1,0 +1,8 @@
+Câu hỏi: Thủ đô của Việt Nam là gì?
+Trả lời: Hà Nội
+
+Câu hỏi: Safe Exam Browser là gì?
+Trả lời: Là một trình duyệt khóa máy tính dùng trong thi cử.
+
+Câu hỏi: Ai là người viết tool này?
+Trả lời: Một người rất giỏi về C# và Reverse Engineering.

@@ -1,0 +1,34 @@
+{
+  "features": [
+    {
+      "id": "build-managed-source",
+      "title": "Build the renamed bb_monitor managed application",
+      "user_visible_behavior": "so that the maintainer can customize the application",
+      "verification_command": "dotnet build succeeds with 0 errors for net8.0-windows",
+      "status": "passing",
+      "evidence": "dotnet restore/build net8.0-windows succeeded; 0 errors",
+      "notes": "",
+      "priority": "P1"
+    },
+    {
+      "id": "preserve-observable-behavior",
+      "title": "Preserve the main WinForms, OCR, input, and monitoring behavior",
+      "user_visible_behavior": "so that the rebuilt application behaves like the original",
+      "verification_command": "At least 90% of the documented behavior checklist matches the original",
+      "status": "not_started",
+      "evidence": "",
+      "notes": "Live behavior comparison was not run because startup performs admin/debug privilege changes, process injection, WMI process creation, and service restart.",
+      "priority": "P1"
+    },
+    {
+      "id": "package-runtime-assets",
+      "title": "Package required runtime assets and dependencies",
+      "user_visible_behavior": "so that a clean test directory starts without missing-file or missing-assembly errors",
+      "verification_command": "Clean-directory startup succeeds with input, tess, runtimes, and required DLLs",
+      "status": "passing",
+      "evidence": "dist contains all 12 required executable, dependency, input, OCR, and x64/x86 native files; Launcher.exe is not referenced by the rebuilt source",
+      "notes": "",
+      "priority": "P1"
+    }
+  ]
+}

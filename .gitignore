@@ -1,0 +1,29 @@
+# .NET build and publish outputs
+[Bb]in/
+[Oo]bj/
+publish/
+dist/
+dist-onefile/
+
+# Restored package runtime files copied into the project root
+runtimes/
+x64/
+x86/
+/System.CodeDom.dll
+/System.Diagnostics.EventLog.dll
+/System.Management.dll
+/System.ServiceProcess.ServiceController.dll
+/Tesseract.dll
+/Tesseract.Drawing.dll
+
+# Runtime state and logs
+/delete_to_quit.file
+/hooking.txt
+/text.txt
+
+# IDE and test artifacts
+.vs/
+*.user
+*.suo
+TestResults/
+
