@@ -176,7 +176,7 @@ internal static class Program
 		using Mutex instanceMutex = new Mutex(initiallyOwned: true, SINGLE_INSTANCE_MUTEX_NAME, out bool createdNew);
 		if (!createdNew)
 		{
-			MessageBox.Show("bb_monitor đã chạy.", "bb_monitor", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			Dialogs.ShowInfo("bb_monitor đã chạy.", "bb_monitor");
 			return;
 		}
 		object obj = _003C_003Ec._003C_003E9__5_0;
@@ -271,14 +271,14 @@ internal static class Program
 		if (!IsAdministrator())
 		{
 			Logging.WriteLog("Not running as administrator, exiting.");
-			MessageBox.Show("Please run this application as an administrator.", "Error", (MessageBoxButtons)0, (MessageBoxIcon)16);
+			Dialogs.ShowError("Please run this application as an administrator.");
 			return false;
 		}
 		_opening?.SetStatus("Checking if hooking.dll is deleted");
 		if (!File.Exists("hooking.dll"))
 		{
 			Logging.WriteLog("No hooking.dll found");
-			MessageBox.Show("No hooking.dll file found, your AV must've zapped it. Please disable it and redownload the tool.", "Error", (MessageBoxButtons)0, (MessageBoxIcon)16);
+			Dialogs.ShowError("No hooking.dll file found, your AV must've zapped it. Please disable it and redownload the tool.");
 			return false;
 		}
 		_opening?.SetStatus("Getting current desktop");
@@ -289,7 +289,7 @@ internal static class Program
 		catch (global::System.Exception ex)
 		{
 			Logging.WriteLog("Couldn't get current desktop's name: " + ex.Message);
-			MessageBox.Show("Couldn't acquire current desktop's name..", "Error", (MessageBoxButtons)0, (MessageBoxIcon)16);
+			Dialogs.ShowError("Couldn't acquire current desktop's name..");
 			return false;
 		}
 		_opening?.SetStatus("Setting debug privileges");
@@ -300,13 +300,13 @@ internal static class Program
 		catch (global::System.Exception ex2)
 		{
 			Logging.WriteLog("Couldn't get debug privilege: " + ex2.Message);
-			MessageBox.Show("Couldn't acquire necessary privilege, some features may not work.", "Error", (MessageBoxButtons)0, (MessageBoxIcon)48);
+			Dialogs.ShowWarning("Couldn't acquire necessary privilege, some features may not work.");
 		}
 		_opening?.SetStatus("Checking WMI services");
 		if (!CheckWMIServices())
 		{
 			Logging.WriteLog("WMI services check failed, exiting.");
-			MessageBox.Show("WMI services check failed, please ensure WMI is working correctly.", "Error", (MessageBoxButtons)0, (MessageBoxIcon)16);
+			Dialogs.ShowError("WMI services check failed, please ensure WMI is working correctly.");
 			return false;
 		}
 		_opening?.SetStatus("Creating quit file");
@@ -396,7 +396,7 @@ internal static class Program
 		_opening?.SetStatus("Restarting SEB service");
 		if (!RestartService())
 		{
-			MessageBox.Show("Failed to restart service", "Error", (MessageBoxButtons)0, (MessageBoxIcon)16);
+			Dialogs.ShowError("Failed to restart service");
 			Quit();
 			return;
 		}

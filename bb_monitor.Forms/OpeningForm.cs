@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
+using bb_monitor.Utils;
 
 namespace bb_monitor.Forms;
 
@@ -35,50 +36,22 @@ public class OpeningForm : Form, IOpeningForm
 
 	public void SetStatus(string status)
 	{
-		//IL_0024: Unknown result type (might be due to invalid IL or missing references)
-		//IL_002e: Expected O, but got Unknown
 		string status2 = status;
-		try
+		((Control)this).InvokeOnUiThread(delegate
 		{
-			if (((Control)this).InvokeRequired)
-			{
-				((Control)this).Invoke((Action)delegate
-				{
-					SetStatus(status2);
-				});
-				return;
-			}
 			_curStatus = status2;
 			((Control)labCurStatus).Text = status2;
 			((Control)labCurStatus).Invalidate();
 			((Control)this).Invalidate();
-		}
-		catch
-		{
-		}
+		});
 	}
 
 	void IOpeningForm.Close()
 	{
-		//IL_0010: Unknown result type (might be due to invalid IL or missing references)
-		//IL_001a: Expected O, but got Unknown
-		try
+		((Control)this).InvokeOnUiThread((Action)([CompilerGenerated] () =>
 		{
-			if (((Control)this).InvokeRequired)
-			{
-				((Control)this).Invoke((Action)([CompilerGenerated] () =>
-				{
-					((Form)this).Close();
-				}));
-			}
-			else
-			{
-				((Form)this).Close();
-			}
-		}
-		catch
-		{
-		}
+			((Form)this).Close();
+		}));
 	}
 
 	protected override void Dispose(bool disposing)
