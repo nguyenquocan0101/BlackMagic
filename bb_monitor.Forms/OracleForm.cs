@@ -246,11 +246,7 @@ public class OracleForm : Form, IMessageFilter
 		//IL_0025: Unknown result type (might be due to invalid IL or missing references)
 		//IL_002f: Expected O, but got Unknown
 		MouseEventArgs e2 = e;
-		if (!((Control)this).IsHandleCreated)
-		{
-			return;
-		}
-		((Control)this).BeginInvoke((Action)delegate
+		((Control)this).PostOnUiThread((Action)delegate
 		{
 			//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0010: Invalid comparison between Unknown and I4
@@ -269,11 +265,7 @@ public class OracleForm : Form, IMessageFilter
 		//IL_0025: Unknown result type (might be due to invalid IL or missing references)
 		//IL_002f: Expected O, but got Unknown
 		KeyEventArgs e2 = e;
-		if (!((Control)this).IsHandleCreated)
-		{
-			return;
-		}
-		((Control)this).BeginInvoke((Action)delegate
+		((Control)this).PostOnUiThread((Action)delegate
 		{
 			//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 			//IL_000b: Unknown result type (might be due to invalid IL or missing references)
@@ -325,11 +317,7 @@ public class OracleForm : Form, IMessageFilter
 		//IL_0025: Unknown result type (might be due to invalid IL or missing references)
 		//IL_002f: Expected O, but got Unknown
 		MouseEventArgs e2 = e;
-		if (!((Control)this).IsHandleCreated)
-		{
-			return;
-		}
-		((Control)this).BeginInvoke((Action)delegate
+		((Control)this).PostOnUiThread((Action)delegate
 		{
 			if (e2.Delta < 0)
 			{
@@ -347,11 +335,7 @@ public class OracleForm : Form, IMessageFilter
 		//IL_0025: Unknown result type (might be due to invalid IL or missing references)
 		//IL_002f: Expected O, but got Unknown
 		MouseEventArgs e2 = e;
-		if (!((Control)this).IsHandleCreated)
-		{
-			return;
-		}
-		((Control)this).BeginInvoke((Action)delegate
+		((Control)this).PostOnUiThread((Action)delegate
 		{
 			//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 			//IL_000b: Unknown result type (might be due to invalid IL or missing references)
