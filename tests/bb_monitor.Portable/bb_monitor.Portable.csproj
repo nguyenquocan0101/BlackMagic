@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Test-support library. The production project (bb_monitor.csproj) targets
+    net8.0-windows and pulls in Windows Forms / Win32 interop, so its assembly
+    cannot be loaded by a test host on Linux CI. The utility modules below are
+    platform-agnostic (only System.Text.RegularExpressions, System.Drawing
+    primitives and System.IO), so we compile the *same* source files into a
+    portable net8.0 assembly that the unit tests reference. This lets coverlet
+    measure real line/branch coverage for these modules on any OS.
+
+    Windows-only modules (Forms, WinAPI, HookManager, WinUtils, TextDisplay,
+    GlobalEventProvider, MouseEventExtArgs, Program) require a Windows test
+    runner and are intentionally not included here.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\bb_monitor.Utils\StringUtils.cs" Link="Production\StringUtils.cs" />
+    <Compile Include="..\..\bb_monitor.Utils\GraphicsUtils.cs" Link="Production\GraphicsUtils.cs" />
+    <Compile Include="..\..\bb_monitor.Utils\Logging.cs" Link="Production\Logging.cs" />
+  </ItemGroup>
+
+</Project>
