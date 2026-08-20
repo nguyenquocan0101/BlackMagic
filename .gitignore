@@ -26,4 +26,7 @@ x86/
 *.user
 *.suo
 TestResults/
+coverage.cobertura.xml
+coverage.json
+coverage.opencover.xml
 
