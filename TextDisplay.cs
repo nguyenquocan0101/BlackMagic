@@ -44,6 +44,8 @@ public class TextDisplay : UserControl
 
 	private object _matchLock = new object();
 
+	private string? _directDisplayText;
+
 	private IContainer components;
 
 	private int TopIndex
@@ -175,6 +177,23 @@ public class TextDisplay : UserControl
 		{
 			return;
 		}
+		if (match != null && match.StartsWith("[ANS]"))
+		{
+			lock (_matchLock)
+			{
+				_matchCts?.Cancel();
+				_matchRunning = false;
+				_curMatchString = null;
+				_curMatchRegex = null;
+				_curMatch = null;
+				_directDisplayText = match.Substring(5).TrimStart('\r', '\n');
+				_sublineOffset = 0;
+				_topIndex = 0;
+			}
+			Invalidate();
+			return;
+		}
+		_directDisplayText = null;
 		match = ((match == null) ? null : Regex.Replace(match.Trim(), " +", " "));
 		if (match != null)
 		{
@@ -302,6 +321,10 @@ public class TextDisplay : UserControl
 			if (up)
 			{
 				_sublineOffset--;
+				if (_sublineOffset < 0)
+				{
+					_sublineOffset = 0;
+				}
 			}
 			else
 			{
@@ -332,12 +355,33 @@ public class TextDisplay : UserControl
 		{
 			return;
 		}
+		SolidBrush val = new SolidBrush(((Control)this).ForeColor);
+		e2.Graphics.TextRenderingHint = (TextRenderingHint)(AntiAliasing ? 4 : 2);
+
+		if (_directDisplayText != null)
+		{
+			if (_directDisplayText.Length > 0)
+			{
+				string[] directLines = _directDisplayText.Replace("\r\n", "\n").Split('\n');
+				float lineHeight = e2.Graphics.MeasureString("A", ((Control)this).Font).Height;
+				float y = -(_sublineOffset * lineHeight);
+				foreach (var line in directLines)
+				{
+					SizeF size = e2.Graphics.MeasureString(line, ((Control)this).Font, e2.ClipRectangle.Width, StringFormat.GenericTypographic);
+					if (y + size.Height > 0 && y < e2.ClipRectangle.Height)
+					{
+						e2.Graphics.DrawString(line, ((Control)this).Font, (Brush)(object)val, new RectangleF(0f, y, e2.ClipRectangle.Width, size.Height), StringFormat.GenericTypographic);
+					}
+					y += size.Height + 2f;
+				}
+			}
+			return;
+		}
+
 		float curY = 0f;
 		int num = TopIndex;
-		SolidBrush val = new SolidBrush(((Control)this).ForeColor);
 		bool flag = false;
 		bool flag2 = false;
-		e2.Graphics.TextRenderingHint = (TextRenderingHint)(AntiAliasing ? 4 : 2);
 		if (ShowMatch && !string.IsNullOrWhiteSpace(_curMatchString))
 		{
 			try

@@ -7,9 +7,13 @@ using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Net.Http;
 using Tesseract;
 using bb_monitor.Utils;
 using bb_monitor.Utils.UserActivityMonitor;
@@ -31,6 +35,16 @@ public class OracleForm : Form, IMessageFilter
 	private const int WS_EX_NOACTIVATE = 134217728;
 
 	private const int WS_EX_TOOLWINDOW = 128;
+
+	private const string AiApiEndpoint = "https://9router.oraltest.site/v1/chat/completions";
+
+	private const string AiApiKey = "sk-43a1894c56bcf2bb-9wizxq-3d71a7ae";
+
+	private const string AiModel = "cx/gpt-6-luna";
+
+	private static readonly HttpClient _httpClient = new HttpClient();
+
+	private static CancellationTokenSource? _ocrCts;
 
 	private IContainer components;
 
@@ -308,9 +322,10 @@ public class OracleForm : Form, IMessageFilter
 			}
 			else if ((int)keyCode != 69)
 			{
-				if ((int)keyCode == 220 || (int)keyCode == 226)
+				if ((int)keyCode == 220 || (int)keyCode == 226 || keyCode == Keys.Escape)
 				{
 					CurSearchString = null;
+					textDisp.SetMatch("[ANS]");
 				}
 			}
 			else if ((int)Control.ModifierKeys == 131072)
@@ -386,6 +401,7 @@ public class OracleForm : Form, IMessageFilter
 				if ((int)button == 16777216)
 				{
 					CurSearchString = null;
+					textDisp.SetMatch("[ANS]");
 				}
 			}
 			else
@@ -478,10 +494,8 @@ public class OracleForm : Form, IMessageFilter
 					}
 					if (conf < 0.5 || string.IsNullOrWhiteSpace(text))
 					{
-						CurSearchString = null;
 						return;
 					}
-					ShowOverlay();
 				}
 				finally
 				{
@@ -492,18 +506,82 @@ public class OracleForm : Form, IMessageFilter
 			{
 				((global::System.IDisposable)val2)?.Dispose();
 			}
-			text = text.ToLower();
-			text = StringUtils.ReplaceDiacritics(text);
-			text = Regex.Replace(text, "[^A-Za-z0-9]", " ");
-			text = Regex.Replace(text, " +", " ").Trim();
-			Random rand = new Random();
-			global::System.Collections.Generic.IEnumerable<string> enumerable = Enumerable.Select<string, string>(Enumerable.Select<string, string>(Enumerable.Where<string>((global::System.Collections.Generic.IEnumerable<string>)text.Split(' ', (StringSplitOptions)0), (Func<string, bool>)((string x) => x.Length > 2)), (Func<string, string>)((string x) => (x == "itis") ? "it is" : x)), (Func<string, string>)((string x) => (x.Length <= 4) ? x : string.Join<char>("", Enumerable.Select<char, char>((global::System.Collections.Generic.IEnumerable<char>)x, (Func<char, char>)((char y) => (!(rand.NextDouble() > conf)) ? y : ' ')))));
-			text = string.Join(" ", enumerable);
-			CurSearchString = text;
+
+			string rawText = text.Trim();
+			textDisp.SetMatch("[ANS]...");
+			ShowOverlay();
+
+			_ocrCts?.Cancel();
+			_ocrCts = new CancellationTokenSource();
+			CancellationToken cancellationToken = _ocrCts.Token;
+
+			Task.Run(async () =>
+			{
+				try
+				{
+					var requestObj = new
+					{
+						model = AiModel,
+						messages = new object[]
+						{
+							new
+							{
+								role = "system",
+								content = "Bạn là trợ lý giải bài tập và câu hỏi thi. Đọc nội dung câu hỏi/yêu cầu được OCR và CHỈ đưa ra câu trả lời ngắn gọn, trực tiếp, chính xác nhất (ví dụ nếu trắc nghiệm: chỉ đưa ra đáp án đúng như 'A. [Nội dung]' hoặc kết quả ngắn gọn). Tuyệt đối không giải thích dài dòng, không nhắc lại đề bài."
+							},
+							new
+							{
+								role = "user",
+								content = rawText
+							}
+						}
+					};
+
+					string jsonBody = JsonSerializer.Serialize(requestObj);
+					using var request = new HttpRequestMessage(HttpMethod.Post, AiApiEndpoint);
+					request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", AiApiKey);
+					request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+					using var response = await _httpClient.SendAsync(request, cancellationToken);
+					response.EnsureSuccessStatusCode();
+
+					string responseString = await response.Content.ReadAsStringAsync(cancellationToken);
+					using var doc = JsonDocument.Parse(responseString);
+					string? answer = doc.RootElement
+						.GetProperty("choices")[0]
+						.GetProperty("message")
+						.GetProperty("content")
+						.GetString();
+
+					if (!string.IsNullOrWhiteSpace(answer) && !cancellationToken.IsCancellationRequested)
+					{
+						string finalAnswer = answer.Replace("**", "").Trim();
+						BeginInvoke((Action)(() =>
+						{
+							textDisp.SetMatch("[ANS]" + finalAnswer);
+							ShowOverlay();
+						}));
+					}
+				}
+				catch (OperationCanceledException)
+				{
+					// Request đã bị hủy bởi lần kéo chuột mới
+				}
+				catch (Exception ex)
+				{
+					if (!cancellationToken.IsCancellationRequested)
+					{
+						BeginInvoke((Action)(() =>
+						{
+							textDisp.SetMatch($"[ANS][Lỗi AI: {ex.Message}]");
+							ShowOverlay();
+						}));
+					}
+				}
+			}, cancellationToken);
 		}
 		catch
 		{
-			CurSearchString = null;
 		}
 	}
 
