@@ -224,7 +224,7 @@ internal static class Program
 			return;
 		}
 		Thread val2 = null;
-		if (Directory.Exists("input") && Directory.Exists("tess"))
+		if (Directory.Exists("tess"))
 		{
 			object obj2 = _003C_003EO._003C0_003E__FormThread;
 			if (obj2 == null)

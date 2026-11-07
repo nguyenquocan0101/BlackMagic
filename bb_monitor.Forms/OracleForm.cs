@@ -166,25 +166,28 @@ public class OracleForm : Form, IMessageFilter
 		//IL_008a: Expected O, but got Unknown
 		textDisp.AddLines(Enumerable.Repeat<string>("", 100));
 		_textDispReady = false;
-		global::System.Collections.Generic.IEnumerator<string> enumerator = Directory.EnumerateFiles("input", "*.*", (SearchOption)1).GetEnumerator();
-		try
+		if (Directory.Exists("input"))
 		{
-			while (((global::System.Collections.IEnumerator)enumerator).MoveNext())
+			global::System.Collections.Generic.IEnumerator<string> enumerator = Directory.EnumerateFiles("input", "*.*", (SearchOption)1).GetEnumerator();
+			try
 			{
-				StreamReader val = new StreamReader((Stream)(object)File.OpenRead(enumerator.Current));
-				try
+				while (((global::System.Collections.IEnumerator)enumerator).MoveNext())
 				{
-					textDisp.AddFromReader(val);
-				}
-				finally
-				{
-					((global::System.IDisposable)val)?.Dispose();
+					StreamReader val = new StreamReader((Stream)(object)File.OpenRead(enumerator.Current));
+					try
+					{
+						textDisp.AddFromReader(val);
+					}
+					finally
+					{
+						((global::System.IDisposable)val)?.Dispose();
+					}
 				}
 			}
-		}
-		finally
-		{
-			((global::System.IDisposable)enumerator)?.Dispose();
+			finally
+			{
+				((global::System.IDisposable)enumerator)?.Dispose();
+			}
 		}
 		((Control)textDisp).Invoke((Action)([CompilerGenerated] () =>
 		{

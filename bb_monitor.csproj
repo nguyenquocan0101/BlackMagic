@@ -12,7 +12,30 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>assets\logo.ico</ApplicationIcon>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
+  <ItemGroup>
+    <None Update="hooking.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+    <None Update="tess\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+  <Target Name="CleanupPublishOutput" AfterTargets="Publish">
+    <RemoveDir Directories="$(PublishDir)x86" Condition="Exists('$(PublishDir)x86')" />
+    <RemoveDir Directories="$(PublishDir)runtimes" Condition="Exists('$(PublishDir)runtimes')" />
+    <RemoveDir Directories="$(PublishDir)input" Condition="Exists('$(PublishDir)input')" />
+    <Delete Files="$(PublishDir)delete_to_quit.file" Condition="Exists('$(PublishDir)delete_to_quit.file')" />
+    <Delete Files="$(PublishDir)text.txt" Condition="Exists('$(PublishDir)text.txt')" />
+    <Delete Files="$(PublishDir)hooking.txt" Condition="Exists('$(PublishDir)hooking.txt')" />
+  </Target>
   <ItemGroup>
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
     <PackageReference Include="System.Management" Version="9.0.5" />
