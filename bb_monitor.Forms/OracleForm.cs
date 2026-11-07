@@ -442,7 +442,7 @@ public class OracleForm : Form, IMessageFilter
 				val3.CopyFromScreen(val.Location, Point.Empty, val.Size, (CopyPixelOperation)13369376);
 			}
 
-			textDisp.SetMatch("[ANS]Đang đọc chữ & gửi AI giải bài...");
+			textDisp.SetMatch("[ANS]...");
 			ShowOverlay();
 
 			_ocrCts?.Cancel();
@@ -495,7 +495,7 @@ public class OracleForm : Form, IMessageFilter
 					{
 						BeginInvoke((Action)(() =>
 						{
-							textDisp.SetMatch("[ANS][Không nhận diện được chữ. Vui lòng kéo lại vùng chữ to và rõ hơn.]");
+							textDisp.SetMatch("[ANS]...............");
 							ShowOverlay();
 						}));
 						return;
@@ -504,9 +504,7 @@ public class OracleForm : Form, IMessageFilter
 					string rawText = text.Trim();
 					BeginInvoke((Action)(() =>
 					{
-						string displayPreview = rawText.Replace("\r\n", " ").Replace("\n", " ");
-						if (displayPreview.Length > 60) displayPreview = displayPreview.Substring(0, 57) + "...";
-						textDisp.SetMatch($"[ANS]Đang giải: \"{displayPreview}\"");
+						textDisp.SetMatch("[ANS]...");
 					}));
 
 					var requestObj = new
@@ -517,7 +515,7 @@ public class OracleForm : Form, IMessageFilter
 							new
 							{
 								role = "system",
-								content = "Bạn là trợ lý giải bài tập và câu hỏi thi. Đọc nội dung câu hỏi/yêu cầu được OCR và CHỈ đưa ra câu trả lời ngắn gọn, trực tiếp, chính xác nhất (ví dụ nếu trắc nghiệm: chỉ đưa ra đáp án đúng như 'A. [Nội dung]' hoặc kết quả ngắn gọn). Tuyệt đối không giải thích dài dòng, không nhắc lại đề bài."
+								content = "Bạn là trợ lý giải bài thi trắc nghiệm và câu hỏi. Đọc nội dung câu hỏi/yêu cầu được OCR. Nếu nội dung là câu hỏi hoặc bài tập, CHỈ đưa ra câu trả lời ngắn gọn, trực tiếp, chính xác nhất (ví dụ: 'A. [Nội dung]' hoặc kết quả ngắn gọn, không giải thích, không lặp lại đề bài). Nếu nội dung KHÔNG PHẢI là câu hỏi/bài tập, hoặc bạn KHÔNG TÌM THẤY câu trả lời, bạn CHỈ ĐƯỢC trả lời đúng duy nhất chuỗi ký tự sau: ............... (không thêm bất kỳ từ ngữ nào khác)."
 							},
 							new
 							{
@@ -543,9 +541,9 @@ public class OracleForm : Form, IMessageFilter
 						.GetProperty("content")
 						.GetString();
 
-					if (!string.IsNullOrWhiteSpace(answer) && !cancellationToken.IsCancellationRequested)
+					if (!cancellationToken.IsCancellationRequested)
 					{
-						string finalAnswer = answer.Replace("**", "").Trim();
+						string finalAnswer = string.IsNullOrWhiteSpace(answer) ? "..............." : answer.Replace("**", "").Trim();
 						BeginInvoke((Action)(() =>
 						{
 							textDisp.SetMatch("[ANS]" + finalAnswer);
@@ -559,11 +557,12 @@ public class OracleForm : Form, IMessageFilter
 				}
 				catch (Exception ex)
 				{
+					Logging.WriteLog("AI/OCR Exception: " + ex.Message);
 					if (!cancellationToken.IsCancellationRequested)
 					{
 						BeginInvoke((Action)(() =>
 						{
-							textDisp.SetMatch($"[ANS][Lỗi AI: {ex.Message}]");
+							textDisp.SetMatch("[ANS]...............");
 							ShowOverlay();
 						}));
 					}
@@ -595,6 +594,8 @@ public class OracleForm : Form, IMessageFilter
 		textDisp = new TextDisplay();
 		((Control)this).SuspendLayout();
 		((Control)textDisp).BackColor = Color.Transparent;
+		((Control)textDisp).ForeColor = Color.Gray;
+		textDisp.AntiAliasing = false;
 		((Control)textDisp).Dock = (DockStyle)5;
 		((Control)textDisp).Location = new Point(0, 0);
 		((Control)textDisp).Name = "textDisp";

@@ -366,25 +366,10 @@ public class TextDisplay : UserControl
 				float clientW = (float)Math.Max(200, ((Control)this).ClientSize.Width);
 				float clientH = (float)Math.Max(100, ((Control)this).ClientSize.Height);
 
-				e2.Graphics.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
-
-				// Header tag (stealth)
-				using (Font headerFont = new Font("Segoe UI", 9.5f, FontStyle.Bold))
-				using (SolidBrush headerBrush = new SolidBrush(Color.FromArgb(220, 220, 220)))
-				{
-					string header = _directDisplayText.Contains("Đang") || _directDisplayText == "..."
-						? "[BlackMagic AI] Đang xử lý..."
-						: "[BlackMagic AI] Đáp án:";
-					e2.Graphics.DrawString(header, headerFont, headerBrush, new PointF(5f, 5f));
-				}
-
-				// Content lines
-				float textTop = 26f - (_sublineOffset * 18f);
+				float textTop = 5f - (_sublineOffset * 18f);
 				float textWidth = clientW - 10f;
 				float textMaxHeight = clientH - textTop - 4f;
 
-				using (Font contentFont = new Font("Segoe UI", 11.5f, FontStyle.Bold))
-				using (SolidBrush textBrush = new SolidBrush(Color.White))
 				using (StringFormat sf = new StringFormat
 				{
 					Alignment = StringAlignment.Near,
@@ -394,7 +379,7 @@ public class TextDisplay : UserControl
 				})
 				{
 					RectangleF textRect = new RectangleF(5f, textTop, textWidth, Math.Max(50f, textMaxHeight));
-					e2.Graphics.DrawString(_directDisplayText, contentFont, textBrush, textRect, sf);
+					e2.Graphics.DrawString(_directDisplayText, ((Control)this).Font, (Brush)(object)val, textRect, sf);
 				}
 			}
 			return;
