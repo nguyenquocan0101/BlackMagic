@@ -378,6 +378,8 @@ public class TextDisplay : UserControl
 			return;
 		}
 
+		return;
+
 		float curY = 0f;
 		int num = TopIndex;
 		bool flag = false;

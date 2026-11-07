@@ -221,19 +221,6 @@ public class OracleForm : Form, IMessageFilter
 
 	private void HookManager_KeyPress(object? sender, KeyPressEventArgs e)
 	{
-		//IL_001c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0026: Expected O, but got Unknown
-		KeyPressEventArgs e2 = e;
-		ShowOverlay();
-		((Control)this).BeginInvoke((Action)delegate
-		{
-			if (char.IsLetterOrDigit(e2.KeyChar) || char.IsWhiteSpace(e2.KeyChar))
-			{
-				OracleForm oracleForm = this;
-			char keyChar = e2.KeyChar;
-			oracleForm.CurSearchString = string.Concat(CurSearchString, keyChar);
-			}
-		});
 	}
 
 	private void UnregisterHooks()
@@ -306,26 +293,13 @@ public class OracleForm : Form, IMessageFilter
 			//IL_0028: Unknown result type (might be due to invalid IL or missing references)
 			//IL_002e: Invalid comparison between Unknown and I4
 			Keys keyCode = e2.KeyCode;
-			if ((int)keyCode <= 13)
-			{
-				if ((int)keyCode != 8)
-				{
-					if ((int)keyCode == 13)
-					{
-						textDisp.NextMatch();
-					}
-				}
-				else
-				{
-					CurSearchString = (((CurSearchString?.Length ?? 0) < 1) ? null : CurSearchString.Substring(0, CurSearchString.Length - 1));
-				}
-			}
-			else if ((int)keyCode != 69)
+			if ((int)keyCode != 69)
 			{
 				if ((int)keyCode == 220 || (int)keyCode == 226 || keyCode == Keys.Escape)
 				{
 					CurSearchString = null;
 					textDisp.SetMatch("[ANS]");
+					Hide();
 				}
 			}
 			else if ((int)Control.ModifierKeys == 131072)
@@ -402,6 +376,7 @@ public class OracleForm : Form, IMessageFilter
 				{
 					CurSearchString = null;
 					textDisp.SetMatch("[ANS]");
+					Hide();
 				}
 			}
 			else
