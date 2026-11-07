@@ -27,4 +27,6 @@ x86/
 *.suo
 TestResults/
 .agents/
+*.zip
+
 
