@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.IO;
 using System.Linq;
@@ -362,17 +363,48 @@ public class TextDisplay : UserControl
 		{
 			if (_directDisplayText.Length > 0)
 			{
-				string[] directLines = _directDisplayText.Replace("\r\n", "\n").Split('\n');
-				float lineHeight = e2.Graphics.MeasureString("A", ((Control)this).Font).Height;
-				float y = -(_sublineOffset * lineHeight);
-				foreach (var line in directLines)
+				float clientW = (float)Math.Max(200, ((Control)this).ClientSize.Width);
+				float clientH = (float)Math.Max(100, ((Control)this).ClientSize.Height);
+
+				// Draw sleek dark background card with subtle border
+				using (SolidBrush bgBrush = new SolidBrush(Color.FromArgb(235, 18, 20, 26)))
+				using (Pen borderPen = new Pen(Color.FromArgb(140, 90, 100, 130), 1.5f))
 				{
-					SizeF size = e2.Graphics.MeasureString(line, ((Control)this).Font, e2.ClipRectangle.Width, StringFormat.GenericTypographic);
-					if (y + size.Height > 0 && y < e2.ClipRectangle.Height)
-					{
-						e2.Graphics.DrawString(line, ((Control)this).Font, (Brush)(object)val, new RectangleF(0f, y, e2.ClipRectangle.Width, size.Height), StringFormat.GenericTypographic);
-					}
-					y += size.Height + 2f;
+					RectangleF cardRect = new RectangleF(2f, 2f, clientW - 4f, clientH - 4f);
+					e2.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+					e2.Graphics.FillRectangle(bgBrush, cardRect);
+					e2.Graphics.DrawRectangle(borderPen, cardRect.X, cardRect.Y, cardRect.Width, cardRect.Height);
+				}
+
+				e2.Graphics.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+
+				// Header tag
+				using (Font headerFont = new Font("Segoe UI", 9.5f, FontStyle.Bold))
+				using (SolidBrush headerBrush = new SolidBrush(Color.FromArgb(0, 225, 120)))
+				{
+					string header = _directDisplayText.Contains("Đang") || _directDisplayText == "..."
+						? "⚡ BlackMagic AI — Đang xử lý..."
+						: "⚡ BlackMagic AI — Đáp án:";
+					e2.Graphics.DrawString(header, headerFont, headerBrush, new PointF(10f, 8f));
+				}
+
+				// Content lines
+				float textTop = 32f - (_sublineOffset * 20f);
+				float textWidth = clientW - 20f;
+				float textMaxHeight = clientH - textTop - 6f;
+
+				using (Font contentFont = new Font("Segoe UI", 11.5f, FontStyle.Bold))
+				using (SolidBrush textBrush = new SolidBrush(Color.White))
+				using (StringFormat sf = new StringFormat
+				{
+					Alignment = StringAlignment.Near,
+					LineAlignment = StringAlignment.Near,
+					Trimming = StringTrimming.Word,
+					FormatFlags = 0
+				})
+				{
+					RectangleF textRect = new RectangleF(10f, textTop, textWidth, Math.Max(50f, textMaxHeight));
+					e2.Graphics.DrawString(_directDisplayText, contentFont, textBrush, textRect, sf);
 				}
 			}
 			return;

@@ -405,6 +405,9 @@ internal static class Program
 		{
 			try
 			{
+				bool sebRunning = Process.GetProcessesByName("SafeExamBrowser").Length > 0;
+				ManageTaskbar(sebRunning);
+
 				if (_doForm)
 				{
 					CheckForm();
@@ -501,6 +504,7 @@ internal static class Program
 		//IL_001c: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0026: Expected O, but got Unknown
 		_quit = true;
+		ManageTaskbar(false);
 		OracleForm? form = _form;
 		if (form != null)
 		{
@@ -521,7 +525,10 @@ internal static class Program
 		{
 			if (!_form.OverlayRequested)
 			{
-				((Form)_form).Hide();
+				if (_form.Visible)
+				{
+					((Form)_form).Hide();
+				}
 				return;
 			}
 			((Form)_form).DesktopLocation = new Point(50, 50);
@@ -603,65 +610,107 @@ internal static class Program
 
 	private static void StartCheckInject()
 	{
-		//IL_0013: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0018: Unknown result type (might be due to invalid IL or missing references)
-		//IL_001e: Expected O, but got Unknown
-		//IL_001f: Expected O, but got Unknown
-		//IL_0038: Unknown result type (might be due to invalid IL or missing references)
-		//IL_003d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0043: Expected O, but got Unknown
 		ManagementEventWatcher val = new ManagementEventWatcher(_useInstanceCreationEvent ? "SELECT * FROM __InstanceCreationEvent WITHIN 0.1 WHERE TargetInstance ISA 'Win32_Process' and TargetInstance.Name LIKE '%SafeExamBrowser%'" : "SELECT * FROM Win32_ProcessStartTrace WHERE ProcessName LIKE '%SafeExamBrowser%'");
 		_processWatcher = val;
-		ManagementEventWatcher val2 = val;
+		EventArrivedEventHandler val3 = delegate(object sender, EventArrivedEventArgs e)
+		{
+			global::System.Threading.Tasks.Task.Run((Action)delegate
+			{
+				string text = null;
+				uint num = 0u;
+				PropertyDataCollection properties = e.NewEvent.Properties;
+				if (!_useInstanceCreationEvent)
+				{
+					text = properties["ProcessName"].Value.ToString();
+					Trace.Assert(text != null);
+					num = (uint)properties["ProcessID"].Value;
+				}
+				else
+				{
+					PropertyDataCollection properties2 = ((ManagementBaseObject)properties["TargetInstance"].Value).Properties;
+					text = properties2["Name"].Value.ToString();
+					num = (uint)properties2["ProcessId"].Value;
+				}
+				try
+				{
+					nuint num2 = WinUtils.Win32Call(WinUtils.InjectLibrary((int)num, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "hooking.dll")));
+					Logging.WriteLog($"WMI: Process {num} ({text}): Inject result = {num2:X}");
+				}
+				catch (global::System.Exception ex)
+				{
+					Logging.WriteLog($"WMI: Process {num} ({text}): Exception during injection: {((object)ex).ToString()}");
+				}
+			});
+		};
+		_processWatcher.EventArrived += val3;
+		_processWatcher.Start();
+		Logging.WriteLog("Started WMI.");
+		InjectExistingSebProcesses();
+	}
+
+	private static void InjectExistingSebProcesses()
+	{
 		try
 		{
-			ManagementEventWatcher? processWatcher = _processWatcher;
-			object obj = _003C_003Ec._003C_003E9__20_0;
-			if (obj == null)
+			Process[] procs = Process.GetProcessesByName("SafeExamBrowser");
+			string hookDll = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "hooking.dll");
+			foreach (Process p in procs)
 			{
-				EventArrivedEventHandler val3 = delegate(object sender, EventArrivedEventArgs e)
+				try
 				{
-					//IL_0012: Unknown result type (might be due to invalid IL or missing references)
-					//IL_001c: Expected O, but got Unknown
-					global::System.Threading.Tasks.Task.Run((Action)delegate
-					{
-						//IL_0063: Unknown result type (might be due to invalid IL or missing references)
-						string text = null;
-						uint num = 0u;
-						PropertyDataCollection properties = e.NewEvent.Properties;
-						if (!_useInstanceCreationEvent)
-						{
-							text = properties["ProcessName"].Value.ToString();
-							Trace.Assert(text != null);
-							num = (uint)properties["ProcessID"].Value;
-						}
-						else
-						{
-							PropertyDataCollection properties2 = ((ManagementBaseObject)properties["TargetInstance"].Value).Properties;
-							text = properties2["Name"].Value.ToString();
-							num = (uint)properties2["ProcessId"].Value;
-						}
-						try
-						{
-							nuint num2 = WinUtils.Win32Call(WinUtils.InjectLibrary((int)num, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "hooking.dll")));
-							Logging.WriteLog($"WMI: Process {num} ({text}): Inject result = {num2:X}");
-						}
-						catch (global::System.Exception ex)
-						{
-							Logging.WriteLog($"WMI: Process {num} ({text}): Exception during injection: {((object)ex).ToString()}");
-						}
-					});
-				};
-				_003C_003Ec._003C_003E9__20_0 = val3;
-				obj = (object)val3;
+					nuint res = WinUtils.Win32Call(WinUtils.InjectLibrary(p.Id, hookDll));
+					Logging.WriteLog($"Existing SEB process {p.Id}: Inject result = {res:X}");
+				}
+				catch (global::System.Exception ex)
+				{
+					Logging.WriteLog($"Existing SEB process {p.Id}: Exception during injection: {ex.Message}");
+				}
 			}
-			processWatcher.EventArrived += (EventArrivedEventHandler)obj;
-			_processWatcher.Start();
-			Logging.WriteLog("Started WMI.");
 		}
-		finally
+		catch
 		{
-			((global::System.IDisposable)val2)?.Dispose();
+		}
+	}
+
+	private static bool _taskbarHidden;
+
+	private static void ManageTaskbar(bool hide)
+	{
+		try
+		{
+			if (hide && !_taskbarHidden)
+			{
+				nint tray = WinAPI.User32.FindWindow("Shell_TrayWnd", null);
+				if (tray != 0)
+				{
+					WinAPI.User32.ShowWindowAsync(tray, 0);
+				}
+				nint secTray = WinAPI.User32.FindWindow("SecondaryTrayWnd", null);
+				if (secTray != 0)
+				{
+					WinAPI.User32.ShowWindowAsync(secTray, 0);
+				}
+				_taskbarHidden = true;
+				Logging.WriteLog("Windows Taskbar hidden for SEB.");
+			}
+			else if (!hide && _taskbarHidden)
+			{
+				nint tray = WinAPI.User32.FindWindow("Shell_TrayWnd", null);
+				if (tray != 0)
+				{
+					WinAPI.User32.ShowWindowAsync(tray, 5);
+				}
+				nint secTray = WinAPI.User32.FindWindow("SecondaryTrayWnd", null);
+				if (secTray != 0)
+				{
+					WinAPI.User32.ShowWindowAsync(secTray, 5);
+				}
+				_taskbarHidden = false;
+				Logging.WriteLog("Windows Taskbar restored.");
+			}
+		}
+		catch
+		{
 		}
 	}
 

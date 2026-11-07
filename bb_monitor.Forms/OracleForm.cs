@@ -84,7 +84,7 @@ public class OracleForm : Form, IMessageFilter
 		//IL_0031: Unknown result type (might be due to invalid IL or missing references)
 		//IL_003b: Expected O, but got Unknown
 		InitializeComponent();
-		((Form)this).Size = new Size(500, 125);
+		((Form)this).Size = new Size(680, 280);
 		textDisp.Suspended = true;
 		global::System.Threading.Tasks.Task.Run(new Action(InitializeTextDisplay));
 		RegisterHooks();
@@ -141,6 +141,28 @@ public class OracleForm : Form, IMessageFilter
 		}
 	}
 
+	public void HideOverlay()
+	{
+		_overlayRequested = false;
+		if (!IsHandleCreated || IsDisposed)
+		{
+			return;
+		}
+		try
+		{
+			BeginInvoke((Action)(() =>
+			{
+				if (!IsDisposed && Visible)
+				{
+					Hide();
+				}
+			}));
+		}
+		catch
+		{
+		}
+	}
+
 	protected override void OnFormClosing(FormClosingEventArgs e)
 	{
 		base.OnFormClosing(e);
@@ -152,10 +174,10 @@ public class OracleForm : Form, IMessageFilter
 		//IL_000d: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0018: Unknown result type (might be due to invalid IL or missing references)
 		SetStyle((ControlStyles)133122, true);
-		((Control)this).BackColor = Color.DarkGray;
-		((Form)this).TransparencyKey = Color.DarkGray;
+		((Control)this).BackColor = Color.Magenta;
+		((Form)this).TransparencyKey = Color.Magenta;
 		((Form)this).TopMost = true;
-		((Form)this).Opacity = 0.15;
+		((Form)this).Opacity = 0.92;
 	}
 
 	private void InitializeTextDisplay()
@@ -302,7 +324,7 @@ public class OracleForm : Form, IMessageFilter
 				{
 					CurSearchString = null;
 					textDisp.SetMatch("[ANS]");
-					Hide();
+					HideOverlay();
 				}
 			}
 			else if ((int)Control.ModifierKeys == 131072)
@@ -365,7 +387,9 @@ public class OracleForm : Form, IMessageFilter
 				{
 					if ((int)button == 4194304)
 					{
-						textDisp.NextMatch();
+						CurSearchString = null;
+						textDisp.SetMatch("[ANS]");
+						HideOverlay();
 					}
 				}
 				else
@@ -379,7 +403,7 @@ public class OracleForm : Form, IMessageFilter
 				{
 					CurSearchString = null;
 					textDisp.SetMatch("[ANS]");
-					Hide();
+					HideOverlay();
 				}
 			}
 			else
@@ -391,23 +415,6 @@ public class OracleForm : Form, IMessageFilter
 
 	private void ProcessOcr(Point mouseStart, Point mouseEnd)
 	{
-		//IL_009d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00a4: Expected O, but got Unknown
-		//IL_00b1: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b6: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00bd: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00e4: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00f2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00f7: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0107: Unknown result type (might be due to invalid IL or missing references)
-		//IL_010e: Expected O, but got Unknown
-		//IL_0133: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0138: Unknown result type (might be due to invalid IL or missing references)
-		//IL_013a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0165: Unknown result type (might be due to invalid IL or missing references)
-		//IL_016c: Expected O, but got Unknown
-		//IL_022a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0234: Expected O, but got Unknown
 		try
 		{
 			Rectangle val = new Rectangle(
@@ -420,73 +427,14 @@ public class OracleForm : Form, IMessageFilter
 				CurSearchString = null;
 				return;
 			}
-			string text = "";
-			double conf = 0.0;
-			Bitmap val2 = new Bitmap(val.Width, val.Height);
-			try
+
+			Bitmap capturedBmp = new Bitmap(val.Width, val.Height);
+			using (Graphics val3 = Graphics.FromImage((Image)(object)capturedBmp))
 			{
-				Graphics val3 = Graphics.FromImage((Image)(object)val2);
-				try
-				{
-					val3.CopyFromScreen(val.Location, Point.Empty, val.Size, (CopyPixelOperation)13369376);
-					val3.Save();
-				}
-				finally
-				{
-					((global::System.IDisposable)val3)?.Dispose();
-				}
-				Size val4 = val.Size.ScaleToWidth(2000.0);
-				Bitmap val5 = new Bitmap(val4.Width, val4.Height);
-				try
-				{
-					Graphics val6 = Graphics.FromImage((Image)(object)val5);
-					try
-					{
-						val6.InterpolationMode = (InterpolationMode)2;
-						val6.CompositingQuality = (CompositingQuality)2;
-						val6.SmoothingMode = (SmoothingMode)4;
-						val6.DrawImage((Image)(object)val2, new Rectangle(Point.Empty, val4));
-						val6.Save();
-					}
-					finally
-					{
-						((global::System.IDisposable)val6)?.Dispose();
-					}
-					TesseractEngine val7 = new TesseractEngine("tess", "eng+vie", (EngineMode)3);
-					try
-					{
-						Page val8 = TesseractDrawingExtensions.Process(val7, val5, (PageSegMode?)null);
-						try
-						{
-							text = val8.GetText();
-							conf = val8.GetMeanConfidence();
-						}
-						finally
-						{
-							((global::System.IDisposable)val8)?.Dispose();
-						}
-					}
-					finally
-					{
-						((global::System.IDisposable)val7)?.Dispose();
-					}
-					if (conf < 0.5 || string.IsNullOrWhiteSpace(text))
-					{
-						return;
-					}
-				}
-				finally
-				{
-					((global::System.IDisposable)val5)?.Dispose();
-				}
-			}
-			finally
-			{
-				((global::System.IDisposable)val2)?.Dispose();
+				val3.CopyFromScreen(val.Location, Point.Empty, val.Size, (CopyPixelOperation)13369376);
 			}
 
-			string rawText = text.Trim();
-			textDisp.SetMatch("[ANS]...");
+			textDisp.SetMatch("[ANS]Đang đọc chữ & gửi AI giải bài...");
 			ShowOverlay();
 
 			_ocrCts?.Cancel();
@@ -497,6 +445,62 @@ public class OracleForm : Form, IMessageFilter
 			{
 				try
 				{
+					if (cancellationToken.IsCancellationRequested)
+					{
+						((global::System.IDisposable)capturedBmp)?.Dispose();
+						return;
+					}
+
+					string text = "";
+					try
+					{
+						int targetW = Math.Max(val.Width, 1200);
+						int targetH = (int)((double)val.Height * targetW / val.Width);
+						using Bitmap scaledBmp = new Bitmap(targetW, targetH);
+						using (Graphics val6 = Graphics.FromImage((Image)(object)scaledBmp))
+						{
+							val6.InterpolationMode = (InterpolationMode)2;
+							val6.CompositingQuality = (CompositingQuality)2;
+							val6.SmoothingMode = (SmoothingMode)4;
+							val6.DrawImage((Image)(object)capturedBmp, new Rectangle(Point.Empty, new Size(targetW, targetH)));
+						}
+						((global::System.IDisposable)capturedBmp)?.Dispose();
+
+						string tessPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tess");
+						string lang = File.Exists(Path.Combine(tessPath, "vie.traineddata")) ? "eng+vie" : "eng+Vietnamese";
+						using (TesseractEngine val7 = new TesseractEngine(tessPath, lang, (EngineMode)3))
+						{
+							using (Page val8 = TesseractDrawingExtensions.Process(val7, scaledBmp, (PageSegMode?)null))
+							{
+								text = val8.GetText();
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						Logging.WriteLog("OCR Exception: " + ex.Message);
+					}
+
+					if (cancellationToken.IsCancellationRequested) return;
+
+					if (string.IsNullOrWhiteSpace(text))
+					{
+						BeginInvoke((Action)(() =>
+						{
+							textDisp.SetMatch("[ANS][Không nhận diện được chữ. Vui lòng kéo lại vùng chữ to và rõ hơn.]");
+							ShowOverlay();
+						}));
+						return;
+					}
+
+					string rawText = text.Trim();
+					BeginInvoke((Action)(() =>
+					{
+						string displayPreview = rawText.Replace("\r\n", " ").Replace("\n", " ");
+						if (displayPreview.Length > 60) displayPreview = displayPreview.Substring(0, 57) + "...";
+						textDisp.SetMatch($"[ANS]Đang giải: \"{displayPreview}\"");
+					}));
+
 					var requestObj = new
 					{
 						model = AiModel,
@@ -558,8 +562,9 @@ public class OracleForm : Form, IMessageFilter
 				}
 			}, cancellationToken);
 		}
-		catch
+		catch (Exception ex)
 		{
+			Logging.WriteLog("ProcessOcr exception: " + ex.Message);
 		}
 	}
 
