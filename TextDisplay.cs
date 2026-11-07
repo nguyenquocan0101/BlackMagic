@@ -366,32 +366,22 @@ public class TextDisplay : UserControl
 				float clientW = (float)Math.Max(200, ((Control)this).ClientSize.Width);
 				float clientH = (float)Math.Max(100, ((Control)this).ClientSize.Height);
 
-				// Draw sleek dark background card with subtle border
-				using (SolidBrush bgBrush = new SolidBrush(Color.FromArgb(235, 18, 20, 26)))
-				using (Pen borderPen = new Pen(Color.FromArgb(140, 90, 100, 130), 1.5f))
-				{
-					RectangleF cardRect = new RectangleF(2f, 2f, clientW - 4f, clientH - 4f);
-					e2.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-					e2.Graphics.FillRectangle(bgBrush, cardRect);
-					e2.Graphics.DrawRectangle(borderPen, cardRect.X, cardRect.Y, cardRect.Width, cardRect.Height);
-				}
-
 				e2.Graphics.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
 
-				// Header tag
+				// Header tag (stealth)
 				using (Font headerFont = new Font("Segoe UI", 9.5f, FontStyle.Bold))
-				using (SolidBrush headerBrush = new SolidBrush(Color.FromArgb(0, 225, 120)))
+				using (SolidBrush headerBrush = new SolidBrush(Color.FromArgb(220, 220, 220)))
 				{
 					string header = _directDisplayText.Contains("Đang") || _directDisplayText == "..."
-						? "⚡ BlackMagic AI — Đang xử lý..."
-						: "⚡ BlackMagic AI — Đáp án:";
-					e2.Graphics.DrawString(header, headerFont, headerBrush, new PointF(10f, 8f));
+						? "[BlackMagic AI] Đang xử lý..."
+						: "[BlackMagic AI] Đáp án:";
+					e2.Graphics.DrawString(header, headerFont, headerBrush, new PointF(5f, 5f));
 				}
 
 				// Content lines
-				float textTop = 32f - (_sublineOffset * 20f);
-				float textWidth = clientW - 20f;
-				float textMaxHeight = clientH - textTop - 6f;
+				float textTop = 26f - (_sublineOffset * 18f);
+				float textWidth = clientW - 10f;
+				float textMaxHeight = clientH - textTop - 4f;
 
 				using (Font contentFont = new Font("Segoe UI", 11.5f, FontStyle.Bold))
 				using (SolidBrush textBrush = new SolidBrush(Color.White))
@@ -403,7 +393,7 @@ public class TextDisplay : UserControl
 					FormatFlags = 0
 				})
 				{
-					RectangleF textRect = new RectangleF(10f, textTop, textWidth, Math.Max(50f, textMaxHeight));
+					RectangleF textRect = new RectangleF(5f, textTop, textWidth, Math.Max(50f, textMaxHeight));
 					e2.Graphics.DrawString(_directDisplayText, contentFont, textBrush, textRect, sf);
 				}
 			}

@@ -174,10 +174,10 @@ public class OracleForm : Form, IMessageFilter
 		//IL_000d: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0018: Unknown result type (might be due to invalid IL or missing references)
 		SetStyle((ControlStyles)133122, true);
-		((Control)this).BackColor = Color.Magenta;
-		((Form)this).TransparencyKey = Color.Magenta;
+		((Control)this).BackColor = Color.DarkGray;
+		((Form)this).TransparencyKey = Color.DarkGray;
 		((Form)this).TopMost = true;
-		((Form)this).Opacity = 0.92;
+		((Form)this).Opacity = 0.25;
 	}
 
 	private void InitializeTextDisplay()
@@ -325,6 +325,14 @@ public class OracleForm : Form, IMessageFilter
 					CurSearchString = null;
 					textDisp.SetMatch("[ANS]");
 					HideOverlay();
+				}
+				else if (keyCode == Keys.Up && (Control.ModifierKeys & Keys.Control) == Keys.Control)
+				{
+					((Form)this).Opacity = Math.Min(1.0, ((Form)this).Opacity + 0.05);
+				}
+				else if (keyCode == Keys.Down && (Control.ModifierKeys & Keys.Control) == Keys.Control)
+				{
+					((Form)this).Opacity = Math.Max(0.05, ((Form)this).Opacity - 0.05);
 				}
 			}
 			else if ((int)Control.ModifierKeys == 131072)
