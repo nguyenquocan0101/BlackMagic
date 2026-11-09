@@ -515,7 +515,7 @@ public class OracleForm : Form, IMessageFilter
 							new
 							{
 								role = "system",
-								content = "Bạn là trợ lý giải bài thi trắc nghiệm và câu hỏi. Đọc nội dung câu hỏi/yêu cầu được OCR. Nếu nội dung là câu hỏi hoặc bài tập, CHỈ đưa ra câu trả lời ngắn gọn, trực tiếp, chính xác nhất (ví dụ: 'A. [Nội dung]' hoặc kết quả ngắn gọn, không giải thích, không lặp lại đề bài). Nếu nội dung KHÔNG PHẢI là câu hỏi/bài tập, hoặc bạn KHÔNG TÌM THẤY câu trả lời, bạn CHỈ ĐƯỢC trả lời đúng duy nhất chuỗi ký tự sau: ............... (không thêm bất kỳ từ ngữ nào khác)."
+								content = "Bạn là trợ lý giải bài thi trắc nghiệm và câu hỏi. Đọc nội dung câu hỏi/yêu cầu được OCR. Nếu là câu hỏi trắc nghiệm, bạn CHỈ đưa ra duy nhất chữ cái đáp án đúng (A, B, C hoặc D), tuyệt đối KHÔNG kèm nội dung đáp án, KHÔNG giải thích, KHÔNG nhắc lại đề bài. Nếu là câu hỏi tính toán hoặc điền đáp án, CHỈ đưa ra kết quả cuối cùng ngắn gọn nhất. Nếu nội dung KHÔNG PHẢI là câu hỏi/bài tập, hoặc bạn KHÔNG TÌM THẤY câu trả lời, bạn CHỈ ĐƯỢC trả lời đúng duy nhất chuỗi ký tự sau: ............... (không thêm bất kỳ từ ngữ nào khác)."
 							},
 							new
 							{
